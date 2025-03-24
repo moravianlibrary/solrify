@@ -1,0 +1,23 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solrify"
+version = "0.0.1"
+authors = [
+    {name = "Robert Randiak", email = "randiak@protonmail.com"}
+]
+requires-python = ">=3.12"
+dynamic = ["dependencies", "description", "readme"]
+
+[tool.setuptools]
+packages = ["solrify"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+description = {file = "description.txt"}
+readme = {file = "README.md"}
