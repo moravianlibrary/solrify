@@ -85,7 +85,7 @@ class SolrClient(Generic[SolrEntity]):
         )
 
     def search(
-        self, query: SearchQuery, sort: str, fl: List[str] | None = None
+        self, query: SearchQuery, fl: List[str] | None = None
     ) -> Generator[SolrEntity, None, None]:
         """
         Performs a Solr search and yields results as entities.
@@ -101,7 +101,7 @@ class SolrClient(Generic[SolrEntity]):
         params = {
             "q": str(query),
             "rows": self._config.page_size,
-            "sort": sort,
+            "sort": f"{self._config.id_field} asc",
             "cursorMark": None,
         }
 
