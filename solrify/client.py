@@ -1,10 +1,10 @@
-from typing import Generator, Generic, List
+from typing import ClassVar, Generator, Generic, List, Type
 
 from requests import Session
 
 from .config import SolrConfig
-from .custom_types import SolrEntity
-from .query import SearchQuery
+from .custom_types import FacetResult, MappingEnum, SolrEntity
+from .query import SearchQueryField
 
 
 class SolrClient(Generic[SolrEntity]):
@@ -13,6 +13,8 @@ class SolrClient(Generic[SolrEntity]):
     It allows performing searches, adding, updating,
     and deleting documents in Solr.
     """
+
+    document_type: ClassVar[Type[SolrEntity]]
 
     def __init__(self, config: SolrConfig):
         """
@@ -26,6 +28,12 @@ class SolrClient(Generic[SolrEntity]):
         self._config = config
         self._session = Session()
         self._session.timeout = config.timeout
+
+        if not self.__class__.document_type:
+            raise ValueError(
+                "The 'document_type' has not been set for "
+                f"{self.__class__.__name__}."
+            )
 
     def close(self):
         """Closes the HTTP session."""
@@ -54,12 +62,11 @@ class SolrClient(Generic[SolrEntity]):
         except Exception:
             return False
 
-    def num_found(self, query: SearchQuery) -> int:
+    def num_found(self, query: SearchQueryField) -> int:
         params = {"q": str(query), "rows": 0}
 
         response = self._session.get(
-            f"{self._config.host}/{self._config.endpoint}",
-            params=params,
+            f"{self._config.host}/{self._config.endpoint}", params=params
         )
 
         response.raise_for_status()
@@ -67,13 +74,12 @@ class SolrClient(Generic[SolrEntity]):
         return response.json()["response"]["numFound"]
 
     def get(
-        self, query: SearchQuery, fl: List[str] | None = None
+        self, query: SearchQueryField, fl: List[str] | None = None
     ) -> SolrEntity | None:
         params = {"q": str(query), "rows": 1, "fl": fl}
 
         response = self._session.get(
-            f"{self._config.host}/{self._config.endpoint}",
-            params=params,
+            f"{self._config.host}/{self._config.endpoint}", params=params
         )
 
         response.raise_for_status()
@@ -85,13 +91,13 @@ class SolrClient(Generic[SolrEntity]):
         )
 
     def search(
-        self, query: SearchQuery, fl: List[str] | None = None
+        self, query: SearchQueryField, fl: List[str] | None = None
     ) -> Generator[SolrEntity, None, None]:
         """
         Performs a Solr search and yields results as entities.
 
         Args:
-            query (SearchQuery): The query to search for.
+            query (SearchQueryField): The query to search for.
             sort (str): The sorting order for the results.
 
         Yields:
@@ -110,8 +116,7 @@ class SolrClient(Generic[SolrEntity]):
         while params["cursorMark"] != curr_cursor:
             params["cursorMark"] = curr_cursor
             response = self._session.get(
-                f"{self._config.host}/{self._config.endpoint}",
-                params=params,
+                f"{self._config.host}/{self._config.endpoint}", params=params
             )
 
             response.raise_for_status()
@@ -120,7 +125,25 @@ class SolrClient(Generic[SolrEntity]):
             documents = response_data["docs"]
 
             for document in documents:
-                yield SolrEntity.model_validate(document)
+                yield self.__class__.document_type.model_validate(document)
 
             if "cursorMark" in response_data:
                 curr_cursor = response_data["cursorMark"]
+
+    def facet(
+        self, query: SearchQueryField, field: MappingEnum
+    ) -> FacetResult:
+        params = {
+            "q": str(query),
+            "rows": 0,
+            "facet": "true",
+            "facet.field": field.map_to,
+        }
+
+        response = self._session.get(
+            f"{self._config.host}/{self._config.endpoint}", params=params
+        )
+
+        response.raise_for_status()
+
+        return response.json()["facet_counts"]["facet_fields"][field.map_to]

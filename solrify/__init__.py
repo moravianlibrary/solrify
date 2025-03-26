@@ -7,19 +7,19 @@ from .custom_types import (
     SolrEntity,
     ValueType,
 )
-from .query import SearchBase, SearchQuery, SearchQueryGroup
+from .query import SearchQuery, SearchQueryField, SearchQueryGroup
 
-Q = SearchQuery
+F = SearchQueryField
 G = SearchQueryGroup
 
 __all__ = [
     "Conjuction",
+    "F",
     "FieldType",
-    "G",
     "MappingEnum",
     "Q",
-    "SearchBase",
     "SearchQuery",
+    "SearchQueryField",
     "SearchQueryGroup",
     "SolrClient",
     "SolrConfig",

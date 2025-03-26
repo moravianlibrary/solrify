@@ -3,23 +3,23 @@ from enum import Enum
 from .custom_types import Conjuction, FieldType, MappingEnum, ValueType
 
 
-class SearchBase:
+class SearchQuery:
     def __init__(self):
         self._neg: bool = False
         self._conj: Conjuction | None = None
-        self._prev: SearchBase | None = None
+        self._prev: SearchQuery | None = None
 
-    def __and__(self, other: "SearchBase"):
+    def __and__(self, other: "SearchQuery"):
         return self._combine(other, Conjuction.AND)
 
-    def __or__(self, other: "SearchBase"):
+    def __or__(self, other: "SearchQuery"):
         return self._combine(other, Conjuction.OR)
 
     def __invert__(self):
         self._neg = not self._neg
         return self
 
-    def _combine(self, other: "SearchBase", conj: Conjuction):
+    def _combine(self, other: "SearchQuery", conj: Conjuction):
         last_node = other
         while last_node._prev:
             last_node = last_node._prev
@@ -35,7 +35,7 @@ class SearchBase:
         return result
 
 
-class SearchQuery(SearchBase):
+class SearchQueryField(SearchQuery):
     def __init__(
         self,
         field: FieldType,
@@ -77,8 +77,8 @@ class SearchQuery(SearchBase):
         )
 
 
-class SearchQueryGroup(SearchBase):
-    def __init__(self, query: SearchQuery):
+class SearchQueryGroup(SearchQuery):
+    def __init__(self, query: SearchQueryField):
         super().__init__()
         self._query = query
 

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple, TypeVar
+from typing import List, Tuple, TypeVar
 
 from pydantic import BaseModel
 
@@ -11,7 +11,7 @@ class MappingEnum(Enum):
 
     @property
     def map_to(self):
-        return self._map_to
+        return self._map_to or self.value
 
     @classmethod
     def map_from(cls, map_from: str):
@@ -40,3 +40,4 @@ class Conjuction(Enum):
 
 
 SolrEntity = TypeVar("SolrEntity", bound=BaseModel)
+FacetResult = List[Tuple[str, int]]
