@@ -9,25 +9,40 @@ class SearchQuery:
         self._conj: Conjuction | None = None
         self._prev: SearchQuery | None = None
 
-    def __and__(self, other: "SearchQuery"):
-        return self._combine(other, Conjuction.AND)
-
-    def __or__(self, other: "SearchQuery"):
-        return self._combine(other, Conjuction.OR)
-
-    def __invert__(self):
-        self._neg = not self._neg
+    def _transfer_state_from(self, query: "SearchQuery") -> "SearchQuery":
+        self._neg = query._neg
+        self._conj = query._conj
+        self._prev = query._prev
         return self
 
-    def _combine(self, other: "SearchQuery", conj: Conjuction):
-        last_node = other
+    def _copy(self) -> "SearchQuery":
+        return SearchQuery()._transfer_state_from(self)
+
+    def _combine_with(self, other: "SearchQuery", conj: Conjuction):
+        self_copy = self._copy()
+        other_copy = other._copy()
+
+        # Link the two queries
+        last_node = other_copy
         while last_node._prev:
             last_node = last_node._prev
-        last_node._prev = self
+        last_node._prev = self_copy
         last_node._conj = conj
-        return other
 
-    def _build(self, result: str) -> str:
+        return other_copy
+
+    def __and__(self, other: "SearchQuery"):
+        return self._combine_with(other, Conjuction.AND)
+
+    def __or__(self, other: "SearchQuery"):
+        return self._combine_with(other, Conjuction.OR)
+
+    def __invert__(self):
+        neg_query = self._copy()
+        neg_query._neg = not self._neg
+        return neg_query
+
+    def _format_query(self, result: str) -> str:
         if self._neg:
             result = f"-{result}"
         if self._prev:
@@ -47,6 +62,11 @@ class SearchQueryField(SearchQuery):
         self._value = value
         self._list_conj = list_conj
 
+    def _copy(self) -> "SearchQueryField":
+        return SearchQueryField(
+            self._field, self._value, self._list_conj
+        )._transfer_state_from(self)
+
     def __str__(self) -> str:
         if self._value is None:
             return ""
@@ -64,15 +84,19 @@ class SearchQueryField(SearchQuery):
             value1 = _value_to_str(self._value[0])
             value2 = _value_to_str(self._value[1])
 
-            return self._build(f"{self._field.map_to}:[{value1} TO {value2}]")
+            return self._format_query(
+                f"{self._field.map_to}:[{value1} TO {value2}]"
+            )
 
         if isinstance(self._value, list):
             joined_values = self._list_conj.value.join(
                 _value_to_str(v) for v in self._value
             )
-            return self._build(f"{self._field.map_to}:({joined_values})")
+            return self._format_query(
+                f"{self._field.map_to}:({joined_values})"
+            )
 
-        return self._build(
+        return self._format_query(
             f"{self._field.map_to}:{_value_to_str(self._value)}"
         )
 
@@ -82,5 +106,8 @@ class SearchQueryGroup(SearchQuery):
         super().__init__()
         self._query = query
 
+    def _copy(self) -> "SearchQueryGroup":
+        return SearchQueryGroup(self._query._copy())._transfer_state_from(self)
+
     def __str__(self) -> str:
-        return self._build(f"({str(self._query)})")
+        return self._format_query(f"({str(self._query)})")

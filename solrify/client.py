@@ -73,7 +73,7 @@ class SolrClient(Generic[SolrEntity]):
 
         return response.json()["response"]["numFound"]
 
-    def get(
+    def get_one_or_none(
         self, query: SearchQueryField, fl: List[str] | None = None
     ) -> SolrEntity | None:
         params = {"q": str(query), "rows": 1, "fl": fl}
