@@ -4,7 +4,7 @@ from requests import Session
 
 from .config import SolrConfig
 from .custom_types import FacetResult, MappingEnum, SolrEntity
-from .query import SearchQueryField
+from .query import SearchQuery
 
 
 class SolrClient(Generic[SolrEntity]):
@@ -62,7 +62,7 @@ class SolrClient(Generic[SolrEntity]):
         except Exception:
             return False
 
-    def num_found(self, query: SearchQueryField) -> int:
+    def num_found(self, query: SearchQuery) -> int:
         params = {"q": str(query), "rows": 0}
 
         response = self._session.get(
@@ -74,7 +74,7 @@ class SolrClient(Generic[SolrEntity]):
         return response.json()["response"]["numFound"]
 
     def get_one_or_none(
-        self, query: SearchQueryField, fl: List[str] | None = None
+        self, query: SearchQuery, fl: List[str] | None = None
     ) -> SolrEntity | None:
         params = {"q": str(query), "rows": 1, "fl": fl}
 
@@ -91,7 +91,7 @@ class SolrClient(Generic[SolrEntity]):
         )
 
     def search(
-        self, query: SearchQueryField, fl: List[str] | None = None
+        self, query: SearchQuery, fl: List[str] | None = None
     ) -> Generator[SolrEntity, None, None]:
         """
         Performs a Solr search and yields results as entities.
@@ -107,6 +107,7 @@ class SolrClient(Generic[SolrEntity]):
         params = {
             "q": str(query),
             "rows": self._config.page_size,
+            "fl": fl,
             "sort": f"{self._config.id_field} asc",
             "cursorMark": None,
         }
@@ -130,9 +131,7 @@ class SolrClient(Generic[SolrEntity]):
             if "cursorMark" in response_data:
                 curr_cursor = response_data["cursorMark"]
 
-    def facet(
-        self, query: SearchQueryField, field: MappingEnum
-    ) -> FacetResult:
+    def facet(self, query: SearchQuery, field: MappingEnum) -> FacetResult:
         params = {
             "q": str(query),
             "rows": 0,
