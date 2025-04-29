@@ -5,9 +5,9 @@ from solrify import Conjuction, F, G, MappingEnum, SearchQuery
 
 
 class TestField(MappingEnum):
-    Name = ("Name", "name")
-    Year = ("Year", "publication_year")
-    Status = ("Status", "status")
+    Name = ("name", "name")
+    Year = ("year", "publication_year")
+    Status = ("status", "status")
 
 
 class TestEnum(Enum):

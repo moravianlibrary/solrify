@@ -77,7 +77,7 @@ class SearchQueryField(SearchQuery):
 
         def _value_to_str(value: ValueType) -> str:
             if isinstance(value, MappingEnum):
-                value = f'"{value.map_to}"'
+                value = f'"{value.alias}"'
             elif isinstance(value, Enum):
                 value = f'"{value.value}"'
             elif isinstance(value, str):
@@ -89,19 +89,17 @@ class SearchQueryField(SearchQuery):
             value2 = _value_to_str(self._value[1])
 
             return self._format_query(
-                f"{self._field.map_to}:[{value1} TO {value2}]"
+                f"{self._field.alias}:[{value1} TO {value2}]"
             )
 
         if isinstance(self._value, list):
             joined_values = self._list_conj.value.join(
                 _value_to_str(v) for v in self._value
             )
-            return self._format_query(
-                f"{self._field.map_to}:({joined_values})"
-            )
+            return self._format_query(f"{self._field.alias}:({joined_values})")
 
         return self._format_query(
-            f"{self._field.map_to}:{_value_to_str(self._value)}"
+            f"{self._field.alias}:{_value_to_str(self._value)}"
         )
 
 

@@ -5,20 +5,24 @@ from pydantic import BaseModel
 
 
 class MappingEnum(Enum):
-    def __init__(self, value, map_to: str | None = None):
-        self._map_to = map_to
-        super().__init__(value)
+    def __init__(self, attr_name: str, alias: str | None = None):
+        self.attr_name = attr_name
+        self.alias = alias or attr_name
 
-    @property
-    def map_to(self):
-        return self._map_to or self.value
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}.{self.name}"
 
     @classmethod
-    def map_from(cls, map_from: str):
+    def from_alias(cls, alias: str) -> "MappingEnum":
         for member in cls:
-            if member.map_to == map_from:
+            if member.alias == alias:
                 return member
-        raise ValueError(f"'{map_from}' not found in {cls.__name__}")
+        raise ValueError(
+            f"No enum member in {cls.__name__} matches alias '{alias}'"
+        )
 
 
 FieldType = TypeVar("F", bound=MappingEnum)
