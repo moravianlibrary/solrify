@@ -5,9 +5,10 @@ from solrify import Conjuction, F, G, MappingEnum, SearchQuery
 
 
 class TestField(MappingEnum):
-    Name = ("name", "name")
-    Year = ("year", "publication_year")
-    Status = ("status", "status")
+    Name = "name"
+    Year = "publication_year"
+    OldYear = "old_publication_year"
+    Status = "status"
 
 
 class TestEnum(Enum):
@@ -16,6 +17,11 @@ class TestEnum(Enum):
 
 
 class TestSearchQuery(unittest.TestCase):
+
+    def test_enum_properties(self):
+        self.assertEqual(TestField.OldYear.name, "OldYear")
+        self.assertEqual(TestField.OldYear.attr_name, "old_year")
+        self.assertEqual(TestField.OldYear.alias, "old_publication_year")
 
     def test_string_query(self):
         q = F(TestField.Name, "Alice")

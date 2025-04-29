@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from typing import List, Tuple, TypeVar, Union
 
@@ -5,9 +6,9 @@ from pydantic import BaseModel
 
 
 class MappingEnum(Enum):
-    def __init__(self, attr_name: str, alias: str | None = None):
-        self.attr_name = attr_name
-        self.alias = alias or attr_name
+    def __init__(self, alias: str | None = None):
+        self.attr_name = re.sub(r"(?<!^)(?=[A-Z])", "_", self.name).lower()
+        self.alias = alias or self.attr_name
 
     def __str__(self) -> str:
         return self.name
