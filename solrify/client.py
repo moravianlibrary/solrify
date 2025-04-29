@@ -136,7 +136,7 @@ class SolrClient(Generic[SolrEntity]):
             "q": str(query),
             "rows": 0,
             "facet": "true",
-            "facet.field": field.map_to,
+            "facet.field": field.alias,
         }
 
         response = self._session.get(
@@ -145,4 +145,4 @@ class SolrClient(Generic[SolrEntity]):
 
         response.raise_for_status()
 
-        return response.json()["facet_counts"]["facet_fields"][field.map_to]
+        return response.json()["facet_counts"]["facet_fields"][field.alias]
