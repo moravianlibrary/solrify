@@ -1,5 +1,7 @@
-__pycache__/
+*.egg-info/
+.coverage
 .venv/
+__pycache__/
 build/
 dist/
-*.egg-info/
+htmlcov/

@@ -42,11 +42,15 @@ class SearchQuery:
         neg_query._neg = not self._neg
         return neg_query
 
+    def __str__(self) -> str:
+        return ""
+
     def _format_query(self, result: str) -> str:
         if self._neg:
             result = f"-{result}"
-        if self._prev:
-            result = f"{self._prev}{self._conj.value}{result}"
+        prev = str(self._prev) if self._prev else ""
+        if prev:
+            result = f"{prev}{self._conj.value}{result}"
         return result
 
 

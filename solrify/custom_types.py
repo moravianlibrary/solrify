@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Tuple, TypeVar
+from typing import List, Tuple, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -23,7 +23,7 @@ class MappingEnum(Enum):
 
 FieldType = TypeVar("F", bound=MappingEnum)
 
-ValueType = (
+type ValueType = Union[
     str,
     int,
     float,
@@ -31,7 +31,7 @@ ValueType = (
     Enum,
     Tuple[int, int],
     Tuple[str, str],
-)
+]
 
 
 class Conjuction(Enum):
