@@ -86,9 +86,12 @@ class SolrClient(Generic[SolrEntity]):
 
         num_found = response.json()["response"]["numFound"]
 
-        return (
-            response.json()["response"]["docs"][0] if num_found == 1 else None
-        )
+        if num_found == 1:
+            return self.__class__.document_type.model_validate(
+                response.json()["response"]["docs"][0]
+            )
+
+        return None
 
     def search(
         self, query: SearchQuery, fl: List[str] | None = None
