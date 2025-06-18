@@ -3,7 +3,7 @@ from typing import ClassVar, Generator, Generic, List, Type
 from requests import Session
 
 from .config import SolrConfig
-from .custom_types import FacetResult, MappingEnum, SolrEntity
+from .definitions import FacetResult, MappingEnum, SolrEntity
 from .query import SearchQuery
 
 

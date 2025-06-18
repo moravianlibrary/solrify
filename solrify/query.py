@@ -1,6 +1,12 @@
 from enum import Enum
 
-from .custom_types import Conjuction, FieldType, MappingEnum, ValueType
+from .definitions import (
+    Conjuction,
+    FieldType,
+    MappingEnum,
+    ValueType,
+    Wildcard,
+)
 
 
 class SearchQuery:
@@ -81,7 +87,7 @@ class SearchQueryField(SearchQuery):
             elif isinstance(value, Enum):
                 value = f'"{value.value}"'
             elif isinstance(value, str):
-                return f'"{value}"'
+                return f"{Wildcard}" if value == Wildcard else f'"{value}"'
             return str(value)
 
         if isinstance(self._value, tuple):

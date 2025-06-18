@@ -1,6 +1,6 @@
 from .client import SolrClient
 from .config import SolrConfig
-from .custom_types import (
+from .definitions import (
     Conjuction,
     FieldType,
     MappingEnum,

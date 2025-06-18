@@ -28,6 +28,8 @@ class MappingEnum(Enum):
 
 FieldType = TypeVar("F", bound=MappingEnum)
 
+Wildcard = "*"
+
 type ValueType = Union[
     str,
     int,
