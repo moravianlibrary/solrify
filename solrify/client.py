@@ -1,6 +1,8 @@
 from typing import ClassVar, Generator, Generic, List, Type
 
 from requests import Session
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 from .config import SolrConfig
 from .definitions import FacetResult, MappingEnum, SolrEntity
@@ -25,15 +27,34 @@ class SolrClient(Generic[SolrEntity]):
             The configuration object containing Solr host, endpoint, etc.
         """
 
-        self._config = config
-        self._session = Session()
-        self._session.timeout = config.timeout
-
         if not self.__class__.document_type:
             raise ValueError(
                 "The 'document_type' has not been set for "
                 f"{self.__class__.__name__}."
             )
+
+        self._config = config
+
+        adapter = HTTPAdapter(
+            max_retries=Retry(
+                total=config.retries,
+                backoff_factor=config.backoff_factor,
+                status_forcelist=[500, 502, 503, 504],
+                allowed_methods=[
+                    "HEAD",
+                    "GET",
+                    "OPTIONS",
+                    "POST",
+                ],
+            )
+        )
+
+        self._session = Session()
+        self._session.mount("http://", adapter)
+        self._session.mount("https://", adapter)
+        self._session = Session()
+
+        self._session.timeout = config.timeout
 
     def close(self):
         """Closes the HTTP session."""
