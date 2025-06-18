@@ -125,14 +125,15 @@ class SolrClient(Generic[SolrEntity]):
 
             response.raise_for_status()
 
-            response_data = response.json()["response"]
-            documents = response_data["docs"]
+            response_data = response.json()
+            documents = response_data["response"]["docs"]
 
             for document in documents:
                 yield self.__class__.document_type.model_validate(document)
 
-            if "cursorMark" in response_data:
-                curr_cursor = response_data["cursorMark"]
+            next_cursor = response_data.get("nextCursorMark", None)
+            if next_cursor is not None:
+                curr_cursor = next_cursor
 
     def facet(self, query: SearchQuery, field: MappingEnum) -> FacetResult:
         params = {
