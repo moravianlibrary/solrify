@@ -36,6 +36,7 @@ type ValueType = Union[
     float,
     MappingEnum,
     Enum,
+    re.Pattern,
     Tuple[int, int],
     Tuple[str, str],
 ]

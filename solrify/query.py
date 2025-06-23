@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 
 from .definitions import (
@@ -83,10 +84,12 @@ class SearchQueryField(SearchQuery):
 
         def _value_to_str(value: ValueType) -> str:
             if isinstance(value, MappingEnum):
-                value = f'"{value.alias}"'
-            elif isinstance(value, Enum):
-                value = f'"{value.value}"'
-            elif isinstance(value, str):
+                return f'"{value.alias}"'
+            if isinstance(value, Enum):
+                return f'"{value.value}"'
+            if isinstance(value, re.Pattern):
+                return f"/{value.pattern}/"
+            if isinstance(value, str):
                 return f"{Wildcard}" if value == Wildcard else f'"{value}"'
             return str(value)
 

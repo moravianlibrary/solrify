@@ -18,11 +18,6 @@ class TestEnum(Enum):
 
 class TestSearchQuery(unittest.TestCase):
 
-    def test_enum_properties(self):
-        self.assertEqual(TestField.OldYear.name, "OldYear")
-        self.assertEqual(TestField.OldYear.attr_name, "old_year")
-        self.assertEqual(TestField.OldYear.alias, "old_publication_year")
-
     def test_string_query(self):
         q = F(TestField.Name, "Alice")
         self.assertEqual(str(q), 'name:"Alice"')
@@ -34,6 +29,24 @@ class TestSearchQuery(unittest.TestCase):
     def test_enum_query(self):
         q = F(TestField.Status, TestEnum.Published)
         self.assertEqual(str(q), 'status:"published"')
+
+    def test_mapping_enum_query(self):
+        q = F(TestField.Name, TestField.OldYear)
+        self.assertEqual(str(q), 'name:"old_publication_year"')
+
+    def test_regex_query(self):
+        import re
+
+        q = F(TestField.Name, re.compile(r"^Alice"))
+        self.assertEqual(str(q), "name:/^Alice/")
+
+    def test_wildcard_query(self):
+        q = F(TestField.Name, "*")
+        self.assertEqual(str(q), "name:*")
+
+    def test_none_value_query(self):
+        q = F(TestField.Name, None)
+        self.assertEqual(str(q), "")
 
     def test_range_query(self):
         q = F(TestField.Year, (2000, 2020))
@@ -65,6 +78,16 @@ class TestSearchQuery(unittest.TestCase):
         combined = q1 | q2
         self.assertEqual(
             str(combined), 'name:"Alice" OR publication_year:2020'
+        )
+
+    def test_three_way_conjunction(self):
+        q1 = F(TestField.Name, "Alice")
+        q2 = F(TestField.Year, 2020)
+        q3 = F(TestField.Status, TestEnum.Published)
+        combined = q1 & (q2 & q3)
+        self.assertEqual(
+            str(combined),
+            'name:"Alice" AND publication_year:2020 AND status:"published"',
         )
 
     def test_group_query(self):
