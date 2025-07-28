@@ -11,6 +11,41 @@ from .definitions import (
 
 
 class SearchQuery:
+    """
+    Base class for representing a composable search query.
+
+    Supports logical composition of queries using AND, OR, and NOT operators,
+    and provides a foundation for concrete search query implementations.
+
+    Attributes
+    ----------
+    _neg : bool
+        Indicates whether the query is negated.
+    _conj : Conjuction or None
+        Logical operator connecting this query to the previous one.
+    _prev : SearchQuery or None
+        Previous query in a chain (used for combining queries).
+
+    Methods
+    -------
+    _transfer_state_from(query)
+        Transfers the logical state from another query.
+    _copy()
+        Returns a copy of the query.
+    _combine_with(other, conj)
+        Combines this query with another using the specified conjunction.
+    __and__(other)
+        Overloads '&' to combine queries with AND.
+    __or__(other)
+        Overloads '|' to combine queries with OR.
+    __invert__()
+        Overloads '~' to negate the query.
+    __str__()
+        Returns the string representation of the query.
+    _format_query(result)
+        Formats the query string based on logical context.
+    """
+
     def __init__(self):
         self._neg: bool = False
         self._conj: Conjuction | None = None
@@ -62,6 +97,24 @@ class SearchQuery:
 
 
 class SearchQueryField(SearchQuery):
+    """
+    Represents a single field-based search query.
+
+    Parameters
+    ----------
+    field : FieldType
+        Field to search against.
+    value : ValueType
+        Value to search for. Can be scalar, range, regex, or list.
+    list_conj : Conjuction, default=Conjuction.OR
+        Conjunction to use when `value` is a list.
+
+    Methods
+    -------
+    __str__()
+        Converts the query to a Solr-style query string.
+    """
+
     def __init__(
         self,
         field: FieldType,
@@ -113,6 +166,22 @@ class SearchQueryField(SearchQuery):
 
 
 class SearchQueryGroup(SearchQuery):
+    """
+    Represents a grouped search query (wrapped in parentheses).
+
+    Useful for explicitly grouping parts of a compound query.
+
+    Parameters
+    ----------
+    query : SearchQueryField
+        The query to wrap in a group.
+
+    Methods
+    -------
+    __str__()
+        Returns the grouped string representation.
+    """
+
     def __init__(self, query: SearchQueryField):
         super().__init__()
         self._query = query

@@ -11,9 +11,35 @@ from .query import SearchQuery
 
 class SolrClient(Generic[SolrEntity]):
     """
-    SolrClient is a client for interacting with a Solr instance.
-    It allows performing searches, adding, updating,
-    and deleting documents in Solr.
+    A generic client for interacting with a Solr instance.
+
+    This client provides an interface to search and facet documents
+    stored in a Solr index using a `SolrEntity`-compatible Pydantic model.
+
+    Attributes
+    ----------
+    document_type : Type[SolrEntity]
+        The class of the document type returned by the Solr index.
+
+    Methods
+    -------
+    close()
+        Closes the HTTP session used for requests.
+    is_available() -> bool
+        Checks if the Solr instance is available.
+    num_found(query: SearchQuery) -> int
+        Returns the number of documents matching the search query.
+    get_one_or_none(
+        query: SearchQuery, fl: List[str] | None = None
+    ) -> SolrEntity | None
+        Retrieves one document matching the query,
+        or None if no or multiple matches exist.
+    search(
+        query: SearchQuery, fl: List[str] | None = None
+    ) -> Generator[SolrEntity, None, None]
+        Performs a paginated search and yields results.
+    facet(query: SearchQuery, field: MappingEnum) -> FacetResult
+        Executes a faceting query on a given field and returns facet results.
     """
 
     document_type: ClassVar[Type[SolrEntity]]
@@ -22,9 +48,16 @@ class SolrClient(Generic[SolrEntity]):
         """
         Initializes the SolrClient with the provided Solr configuration.
 
-        Args:
-            config (SolrConfig):
-            The configuration object containing Solr host, endpoint, etc.
+        Parameters
+        ----------
+        config: SolrConfig
+            Configuration for the Solr connection, including host, endpoint,
+            timeout, and retry settings.
+
+        Raises
+        ------
+        ValueError
+            If the `document_type` is not defined on the subclass.
         """
 
         if not self.__class__.document_type:
@@ -57,22 +90,31 @@ class SolrClient(Generic[SolrEntity]):
         self._session.timeout = config.timeout
 
     def close(self):
-        """Closes the HTTP session."""
+        """
+        Close the HTTP session.
+
+        This method should be used to release resources associated
+        with the session.
+        """
 
         if self._session:
             self._session.close()
 
     def __del__(self):
-        """Ensures the session is closed when the client is deleted."""
+        """
+        Destructor to ensure the session is closed upon object deletion.
+        """
         self.close()
 
     def is_available(self) -> bool:
         """
-        Checks if the Solr instance is available
-        by making a request to the search endpoint.
+        Check if the Solr instance is available.
 
-        Returns:
-            bool: True if Solr is available (status code 200), False otherwise.
+        Returns
+        -------
+        bool
+            `True` if the Solr endpoint responds with a 200 OK status,
+            otherwise `False`.
         """
 
         try:
@@ -84,6 +126,19 @@ class SolrClient(Generic[SolrEntity]):
             return False
 
     def num_found(self, query: SearchQuery) -> int:
+        """
+        Return the number of documents matching the search query.
+
+        Parameters
+        ----------
+        query : SearchQuery
+            The query to send to the Solr server.
+
+        Returns
+        -------
+        int
+            Number of matching documents found.
+        """
         params = {"q": str(query), "rows": 0}
 
         response = self._session.get(
@@ -97,6 +152,23 @@ class SolrClient(Generic[SolrEntity]):
     def get_one_or_none(
         self, query: SearchQuery, fl: List[str] | None = None
     ) -> SolrEntity | None:
+        """
+        Get one document matching the query,
+        or None if no or multiple matches exist.
+
+        Parameters
+        ----------
+        query : SearchQuery
+            The search query.
+        fl : list of str, optional
+            List of fields to fetch.
+
+        Returns
+        -------
+        SolrEntity or None
+            A single matching document,
+            or None if there are 0 or more than 1 matches.
+        """
         params = {"q": str(query), "rows": 1, "fl": fl}
 
         response = self._session.get(
@@ -118,14 +190,19 @@ class SolrClient(Generic[SolrEntity]):
         self, query: SearchQuery, fl: List[str] | None = None
     ) -> Generator[SolrEntity, None, None]:
         """
-        Performs a Solr search and yields results as entities.
+        Perform a paginated search and yield results.
 
-        Args:
-            query (SearchQueryField): The query to search for.
-            sort (str): The sorting order for the results.
+        Parameters
+        ----------
+        query : SearchQuery
+            The query to search for.
+        fl : list of str, optional
+            Fields to return for each result.
 
-        Yields:
-            Entity: The search results as entities.
+        Yields
+        ------
+        SolrEntity
+            An instance of the result document parsed into the `document_type`.
         """
 
         params = {
@@ -157,6 +234,21 @@ class SolrClient(Generic[SolrEntity]):
                 curr_cursor = next_cursor
 
     def facet(self, query: SearchQuery, field: MappingEnum) -> FacetResult:
+        """
+        Execute a faceting query on a given field.
+
+        Parameters
+        ----------
+        query : SearchQuery
+            The query to filter documents before faceting.
+        field : MappingEnum
+            The field on which to perform faceting.
+
+        Returns
+        -------
+        FacetResult
+            A list of (facet_value, count) tuples representing facet buckets.
+        """
         params = {
             "q": str(query),
             "rows": 0,

@@ -1,0 +1,1 @@
+Solrify is a lightweight, strongly-typed Python client for Apache Solr, designed with Pydantic for model validation and type safety.
