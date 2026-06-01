@@ -85,9 +85,8 @@ class SolrClient(Generic[SolrEntity]):
         self._session = Session()
         self._session.mount("http://", adapter)
         self._session.mount("https://", adapter)
-        self._session = Session()
 
-        self._session.timeout = config.timeout
+        self._timeout = config.timeout
 
     def close(self):
         """
@@ -119,7 +118,8 @@ class SolrClient(Generic[SolrEntity]):
 
         try:
             response = self._session.get(
-                f"{self._config.host}/{self._config.endpoint}"
+                f"{self._config.host}/{self._config.endpoint}",
+                timeout=self._timeout,
             )
             return response.status_code == 200
         except Exception:
@@ -142,7 +142,9 @@ class SolrClient(Generic[SolrEntity]):
         params = {"q": str(query), "rows": 0}
 
         response = self._session.get(
-            f"{self._config.host}/{self._config.endpoint}", params=params
+            f"{self._config.host}/{self._config.endpoint}",
+            params=params,
+            timeout=self._timeout,
         )
 
         response.raise_for_status()
@@ -172,7 +174,9 @@ class SolrClient(Generic[SolrEntity]):
         params = {"q": str(query), "rows": 1, "fl": fl}
 
         response = self._session.get(
-            f"{self._config.host}/{self._config.endpoint}", params=params
+            f"{self._config.host}/{self._config.endpoint}",
+            params=params,
+            timeout=self._timeout,
         )
 
         response.raise_for_status()
@@ -218,7 +222,9 @@ class SolrClient(Generic[SolrEntity]):
         while params["cursorMark"] != curr_cursor:
             params["cursorMark"] = curr_cursor
             response = self._session.get(
-                f"{self._config.host}/{self._config.endpoint}", params=params
+                f"{self._config.host}/{self._config.endpoint}",
+                params=params,
+                timeout=self._timeout,
             )
 
             response.raise_for_status()
@@ -257,7 +263,9 @@ class SolrClient(Generic[SolrEntity]):
         }
 
         response = self._session.get(
-            f"{self._config.host}/{self._config.endpoint}", params=params
+            f"{self._config.host}/{self._config.endpoint}",
+            params=params,
+            timeout=self._timeout,
         )
 
         response.raise_for_status()
