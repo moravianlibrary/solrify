@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import List, Tuple, TypeVar, Union
+from typing import List, Sequence, Tuple, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -107,7 +107,7 @@ type ValueType = Union[
     ScalarValueType,
     Tuple[int, int],
     Tuple[str, str],
-    List[ScalarValueType],
+    Sequence[ScalarValueType],
 ]
 """
 A union type representing allowed search values.
@@ -117,7 +117,9 @@ Includes:
 - Enums: `MappingEnum`, `Enum`
 - Patterns: `re.Pattern`
 - Ranges: `(int, int)`, `(str, str)`
-- Lists of any scalar, joined by `SearchQueryField`'s `list_conj`
+- Sequences of any scalar, joined by `SearchQueryField`'s `list_conj`
+  (a Sequence, not a List: `list` is invariant, so a `list[SomeEnum]`
+  is not a `list[ScalarValueType]` however well each element fits)
 
 The list form was always accepted — `SearchQueryField.__str__` branches on it
 and `list_conj` exists for nothing else — but this alias omitted it, so every

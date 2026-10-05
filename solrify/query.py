@@ -174,8 +174,10 @@ class SearchQueryGroup(SearchQuery):
 
     Parameters
     ----------
-    query : SearchQueryField
-        The query to wrap in a group.
+    query : SearchQuery
+        The query to wrap in a group. Any query, not only a field one: the
+        group only wraps whatever it is given in parentheses, and a
+        combination is the thing most worth grouping.
 
     Methods
     -------
@@ -183,7 +185,7 @@ class SearchQueryGroup(SearchQuery):
         Returns the grouped string representation.
     """
 
-    def __init__(self, query: SearchQueryField):
+    def __init__(self, query: SearchQuery):
         super().__init__()
         self._query = query
 
