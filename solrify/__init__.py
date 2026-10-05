@@ -5,6 +5,7 @@ from .definitions import (
     FieldType,
     MappingEnum,
     SolrEntity,
+    ScalarValueType,
     ValueType,
 )
 from .query import SearchQuery, SearchQueryField, SearchQueryGroup
@@ -24,5 +25,6 @@ __all__ = [
     "SolrClient",
     "SolrConfig",
     "SolrEntity",
+    "ScalarValueType",
     "ValueType",
 ]

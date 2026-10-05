@@ -60,6 +60,17 @@ class TestSearchQuery(unittest.TestCase):
         q = F(TestField.Name, ["Alice", "Bob"], list_conj=Conjuction.AND)
         self.assertEqual(str(q), 'name:("Alice" AND "Bob")')
 
+    def test_list_of_enums_query(self):
+        """A list of enum members, which is how a caller filters by model.
+
+        Every list test above holds strings, and `ValueType` omitted the list
+        form altogether until it was spelled out — so the shape callers
+        actually use went through the one branch nothing covered.
+        """
+
+        q = F(TestField.Status, [TestEnum.Published, TestEnum.Draft])
+        self.assertEqual(str(q), 'status:("published" OR "draft")')
+
     def test_negation(self):
         q = ~F(TestField.Name, "Alice")
         self.assertEqual(str(q), '-name:"Alice"')

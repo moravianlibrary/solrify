@@ -90,15 +90,24 @@ Wildcard = "*"
 """Constant representing a wildcard character used in queries."""
 
 
-type ValueType = Union[
+type ScalarValueType = Union[
     str,
     int,
     float,
     MappingEnum,
     Enum,
     re.Pattern,
+]
+"""
+A single search value, as it appears on its own or inside a range or list.
+"""
+
+
+type ValueType = Union[
+    ScalarValueType,
     Tuple[int, int],
     Tuple[str, str],
+    List[ScalarValueType],
 ]
 """
 A union type representing allowed search values.
@@ -108,6 +117,11 @@ Includes:
 - Enums: `MappingEnum`, `Enum`
 - Patterns: `re.Pattern`
 - Ranges: `(int, int)`, `(str, str)`
+- Lists of any scalar, joined by `SearchQueryField`'s `list_conj`
+
+The list form was always accepted — `SearchQueryField.__str__` branches on it
+and `list_conj` exists for nothing else — but this alias omitted it, so every
+caller passing one had to suppress the argument error.
 """
 
 

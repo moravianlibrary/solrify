@@ -5,6 +5,7 @@ from .definitions import (
     Conjuction,
     FieldType,
     MappingEnum,
+    ScalarValueType,
     ValueType,
     Wildcard,
 )
@@ -135,7 +136,7 @@ class SearchQueryField(SearchQuery):
         if self._value is None:
             return ""
 
-        def _value_to_str(value: ValueType) -> str:
+        def _value_to_str(value: ScalarValueType) -> str:
             if isinstance(value, MappingEnum):
                 return f'"{value.alias}"'
             if isinstance(value, Enum):
